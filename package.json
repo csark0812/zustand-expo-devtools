@@ -30,6 +30,7 @@
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
+    "@types/react": "^19.1.2",
     "expo": "~52.0.3",
     "expo-module-scripts": "^4.0.2",
     "typescript": "^5.6.3"
