@@ -3,7 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useShallow } from 'zustand/react/shallow';
-import { expoDevtools } from '../../plugin';
+import { expoDevtools } from 'zustand-expo-devtools';
 
 // AsyncStorage adapter for Zustand
 const asyncStorage = {
@@ -92,14 +92,14 @@ function createAppStore() {
             }),
           toggleTodo: id =>
             set(state => {
-              const todo = state.todos.find(t => t.id === id);
+              const todo = state.todos.find((t: AppState['todos'][0]) => t.id === id);
               if (todo) {
                 todo.completed = !todo.completed;
               }
             }),
           removeTodo: id =>
             set(state => {
-              const index = state.todos.findIndex(t => t.id === id);
+              const index = state.todos.findIndex((t: AppState['todos'][0]) => t.id === id);
               if (index !== -1) {
                 state.todos.splice(index, 1);
               }
