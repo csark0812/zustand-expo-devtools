@@ -1,0 +1,26 @@
+{
+  "name": "plugin-webui",
+  "version": "0.0.1-private",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~53.0.3",
+    "expo-status-bar": "~2.2.2",
+    "react": "19.0.0",
+    "react-native": "0.79.1",
+    "react-native-web": "^0.20.0",
+    "react-dom": "19.0.0",
+    "@expo/metro-runtime": "~5.0.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~19.0.10",
+    "typescript": "~5.8.3"
+  },
+  "private": true
+}
