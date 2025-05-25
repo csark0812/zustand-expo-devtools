@@ -1,5 +1,5 @@
 {
-	"name": "zustand-devtools",
+	"name": "zustand-expo-devtools",
 	"version": "0.1.1",
 	"description": "A new DevTools plugin created by create-dev-plugin",
 	"main": "build/index.js",
@@ -12,15 +12,20 @@
 		"prepare": "expo-module prepare",
 		"prepublishOnly": "expo-module prepare && expo-module prepublishOnly && npm run web:export",
 		"web:dev": "cd webui && npx expo start -w",
-		"web:export": "./scripts/build-webui.js"
+		"web:export": "rm -rf ./dist && ./scripts/build-webui.js"
 	},
-	"keywords": ["expo", "devtools"],
-	"files": ["build", "dist", "expo-module.config.json"],
+	"keywords": [
+		"expo",
+		"devtools"
+	],
+	"files": [
+		"build",
+		"dist",
+		"expo-module.config.json"
+	],
 	"license": "MIT",
-	"dependencies": {
-		"zustand": "^5.0.5"
-	},
 	"devDependencies": {
+		"@types/node": "^22.15.21",
 		"@types/react": "~19.0.10",
 		"expo": "~53.0.3",
 		"expo-module-scripts": "^4.1.7",
@@ -28,6 +33,7 @@
 		"typescript": "~5.8.3"
 	},
 	"peerDependencies": {
-		"expo": "*"
+		"expo": "*",
+		"zustand": "^5.0.5"
 	}
 }

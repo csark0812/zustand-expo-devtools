@@ -1,7 +1,7 @@
 export let expoDevtools;
 // @ts-ignore process.env.NODE_ENV is defined by metro transform plugins
-if (process.env.NODE_ENV !== 'production') {
-    const devtoolsModule = require('./withExpoDevtools');
+if (process.env.NODE_ENV !== "production") {
+    const devtoolsModule = require("./withExpoDevtools");
     expoDevtools = devtoolsModule.expoDevtools;
 }
 else {
