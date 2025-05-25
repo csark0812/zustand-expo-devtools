@@ -178,10 +178,6 @@ MIT © [Christopher Sarkissian](https://github.com/csark0812)
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
-
-MIT
-
 ## Related
 
 - [Zustand](https://github.com/pmndrs/zustand) - The state management library
