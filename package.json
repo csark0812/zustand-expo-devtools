@@ -1,6 +1,6 @@
 {
 	"name": "@csark0812/zustand-expo-devtools",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"description": "A new DevTools plugin created by create-dev-plugin",
 	"main": "build/index.js",
 	"types": "build/index.d.ts",
@@ -9,24 +9,18 @@
 	"scripts": {
 		"build": "expo-module build",
 		"build:all": "expo-module prepare && npm run web:export",
+		"build:dev": "npm run build:all && cd examples/basic && npm i",
 		"clean": "expo-module clean",
 		"prepare": "expo-module prepare",
 		"prepublishOnly": "expo-module prepare && expo-module prepublishOnly && npm run web:export",
 		"web:dev": "cd webui && npx expo start -w",
-		"web:export": "rm -rf ./dist && ./scripts/build-webui.js",
+		"web:export": "./scripts/build-webui.js",
 		"release:patch": "npm version patch && git push && git push --tags",
 		"release:minor": "npm version minor && git push && git push --tags",
 		"release:major": "npm version major && git push && git push --tags"
 	},
-	"keywords": [
-		"expo",
-		"devtools"
-	],
-	"files": [
-		"build",
-		"dist",
-		"expo-module.config.json"
-	],
+	"keywords": ["expo", "devtools"],
+	"files": ["build", "dist", "expo-module.config.json"],
 	"license": "MIT",
 	"devDependencies": {
 		"@types/node": "^22.15.21",

@@ -1,14 +1,16 @@
-# Zustand Store with Immer & AsyncStorage
+# Zustand Store with Expo DevTools Integration
 
-This store demonstrates a complete setup of Zustand with Immer middleware for immutable updates and persist middleware using @react-native-async-storage/async-storage for reliable persistence.
+This store demonstrates a complete setup of Zustand with the Expo DevTools plugin, along with Immer middleware for immutable updates and persist middleware using @react-native-async-storage/async-storage for reliable persistence.
 
 ## Features
 
 - **Zustand**: Lightweight state management
+- **Expo DevTools**: Real-time debugging with Redux DevTools integration
 - **Immer**: Immutable state updates with mutable syntax
 - **AsyncStorage**: Reliable, cross-platform key-value storage for React Native
 - **TypeScript**: Full type safety
 - **Optimized Selectors**: Prevent unnecessary re-renders
+- **Named Actions**: Better debugging experience with action tracking
 
 ## Store Structure
 
@@ -177,3 +179,33 @@ export const useUpdateNewFeature = () => useAppStore((state) => state.updateNewF
 3. **Type safety**: Always use TypeScript interfaces for state shape
 4. **Partition state**: Only persist what's necessary for better performance
 5. **Immer patterns**: Take advantage of Immer's mutable-style updates for complex state
+
+## Expo DevTools Integration
+
+The store is configured with the `expoDevtools` middleware that provides:
+
+- **Real-time State Inspection**: View your store state live in the Redux DevTools
+- **Action Tracking**: All state changes are tracked with descriptive action names
+- **Time Travel Debugging**: Navigate through state history
+- **Production Safety**: Automatically disabled in production builds
+
+### Using Named Actions
+
+All actions in this store use named actions for better debugging:
+
+```typescript
+// Instead of
+set((state) => { state.count += 1; })
+
+// We use
+set((state) => { state.count += 1; }, false, "increment")
+```
+
+This makes it easy to track what actions triggered state changes in the DevTools.
+
+### Opening DevTools
+
+1. Run your Expo app: `npx expo start`
+2. Open Expo DevTools in your browser
+3. Install the Redux DevTools browser extension
+4. The store will automatically connect and display in the DevTools

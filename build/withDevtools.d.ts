@@ -1,4 +1,4 @@
-import type { StateCreator, StoreApi, StoreMutatorIdentifier } from 'zustand/vanilla';
+import type { StateCreator, StoreApi, StoreMutatorIdentifier } from "zustand/vanilla";
 type Cast<T, U> = T extends U ? T : U;
 type Write<T, U> = Omit<T, keyof U> & U;
 type TakeTwo<T> = T extends {
@@ -37,13 +37,16 @@ export interface ExpoDevtoolsOptions {
     anonymousActionType?: string;
     store?: string;
 }
-type ExpoDevtools = <T, Mps extends [StoreMutatorIdentifier, unknown][] = [], Mcs extends [StoreMutatorIdentifier, unknown][] = [], U = T>(initializer: StateCreator<T, [...Mps, ['zustand/expo-devtools', never]], Mcs, U>, devtoolsOptions?: ExpoDevtoolsOptions) => StateCreator<T, Mps, [['zustand/expo-devtools', never], ...Mcs]>;
-declare module 'zustand/vanilla' {
+type ExpoDevtools = <T, Mps extends [StoreMutatorIdentifier, unknown][] = [], Mcs extends [StoreMutatorIdentifier, unknown][] = [], U = T>(initializer: StateCreator<T, [
+    ...Mps,
+    ["zustand/expo-devtools", never]
+], Mcs, U>, devtoolsOptions?: ExpoDevtoolsOptions) => StateCreator<T, Mps, [["zustand/expo-devtools", never], ...Mcs]>;
+declare module "zustand/vanilla" {
     interface StoreMutators<S, A> {
-        'zustand/expo-devtools': WithExpoDevtools<S>;
+        "zustand/expo-devtools": WithExpoDevtools<S>;
     }
 }
-export type NamedSet<T> = WithExpoDevtools<StoreApi<T>>['setState'];
-export declare const expoDevtools: ExpoDevtools;
+export type NamedSet<T> = WithExpoDevtools<StoreApi<T>>["setState"];
+export declare const devtools: ExpoDevtools;
 export {};
-//# sourceMappingURL=withExpoDevtools.d.ts.map
+//# sourceMappingURL=withDevtools.d.ts.map

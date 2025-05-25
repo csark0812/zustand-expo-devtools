@@ -3,7 +3,7 @@ import { immer } from "zustand/middleware/immer";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useShallow } from "zustand/react/shallow";
-import { expoDevtools } from "@csark0812/zustand-expo-devtools";
+import { devtools } from "@csark0812/zustand-expo-devtools";
 
 // AsyncStorage adapter for Zustand
 const asyncStorage = {
@@ -50,23 +50,35 @@ export interface AppState {
 // Store factory function
 function createAppStore() {
 	return create<AppState>()(
-		expoDevtools(
+		devtools(
 			persist(
 				immer((set, get) => ({
 					// Counter state
 					count: 0,
 					increment: () =>
-						set((state) => {
-							state.count += 1;
-						}),
+						set(
+							(state) => {
+								state.count += 1;
+							},
+							undefined,
+							"increment",
+						),
 					decrement: () =>
-						set((state) => {
-							state.count -= 1;
-						}),
+						set(
+							(state) => {
+								state.count -= 1;
+							},
+							undefined,
+							"decrement",
+						),
 					reset: () =>
-						set((state) => {
-							state.count = 0;
-						}),
+						set(
+							(state) => {
+								state.count = 0;
+							},
+							undefined,
+							"reset",
+						),
 
 					// User preferences state
 					preferences: {
@@ -75,39 +87,55 @@ function createAppStore() {
 						language: "en",
 					},
 					updatePreferences: (newPreferences) =>
-						set((state) => {
-							Object.assign(state.preferences, newPreferences);
-						}),
+						set(
+							(state) => {
+								Object.assign(state.preferences, newPreferences);
+							},
+							undefined,
+							"updatePreferences",
+						),
 
 					// Todo list state
 					todos: [],
 					addTodo: (text) =>
-						set((state) => {
-							state.todos.push({
-								id: Date.now().toString(),
-								text,
-								completed: false,
-								createdAt: new Date(),
-							});
-						}),
+						set(
+							(state) => {
+								state.todos.push({
+									id: Date.now().toString(),
+									text,
+									completed: false,
+									createdAt: new Date(),
+								});
+							},
+							undefined,
+							"addTodo",
+						),
 					toggleTodo: (id) =>
-						set((state) => {
-							const todo = state.todos.find(
-								(t: AppState["todos"][0]) => t.id === id,
-							);
-							if (todo) {
-								todo.completed = !todo.completed;
-							}
-						}),
+						set(
+							(state) => {
+								const todo = state.todos.find(
+									(t: AppState["todos"][0]) => t.id === id,
+								);
+								if (todo) {
+									todo.completed = !todo.completed;
+								}
+							},
+							undefined,
+							"toggleTodo",
+						),
 					removeTodo: (id) =>
-						set((state) => {
-							const index = state.todos.findIndex(
-								(t: AppState["todos"][0]) => t.id === id,
-							);
-							if (index !== -1) {
-								state.todos.splice(index, 1);
-							}
-						}),
+						set(
+							(state) => {
+								const index = state.todos.findIndex(
+									(t: AppState["todos"][0]) => t.id === id,
+								);
+								if (index !== -1) {
+									state.todos.splice(index, 1);
+								}
+							},
+							undefined,
+							"removeTodo",
+						),
 				})),
 				{
 					name: "app-storage", // unique name
