@@ -178,16 +178,8 @@ MIT © [Christopher Sarkissian](https://github.com/csark0812)
 ## Related
 
 - [Zustand](https://github.com/pmndrs/zustand) - 🐻 Bear necessities for state management in React
-- [Expo DevTools](https://docs.expo.dev/debugging/devtools/) - Expo's built-in debugging tools
+- [Expo DevTools](https://docs.expo.dev/debugging/tools/) - Expo's debugging and profiling tools
 - [Redux DevTools](https://github.com/reduxjs/redux-devtools) - DevTools core integration
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Related
-
-- [Zustand](https://github.com/pmndrs/zustand) - The state management library
-- [Expo DevTools](https://docs.expo.dev/debugging/devtools/) - Expo's debugging tools
-- [Redux DevTools](https://github.com/reduxjs/redux-devtools) - Inspiration for this project
 
 ## Inspiration & Credits
 
