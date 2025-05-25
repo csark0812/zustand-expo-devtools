@@ -1,6 +1,6 @@
 # Zustand Expo DevTools
 
-A DevTools plugin that brings Zustand state debugging capabilities to Expo DevTools, allowing you to inspect and debug your Zustand stores directly in the Expo development environment using the Redux DevTools browser extension.
+A DevTools plugin that brings Zustand state debugging capabilities to Expo DevTools, allowing you to inspect and debug your Zustand stores directly in the Expo development environment. This plugin works exactly like the built-in Zustand devtools middleware, with the same API and functionality.
 
 ## Features
 
@@ -9,7 +9,7 @@ A DevTools plugin that brings Zustand state debugging capabilities to Expo DevTo
 - 🔄 **Time Travel Debugging** - Navigate through state history using Redux DevTools
 - 🚀 **Expo Integration** - Seamlessly integrates with Expo DevTools platform
 - 📱 **React Native Support** - Works with Expo managed workflow
-- 🌐 **Redux DevTools Extension** - Leverages the popular Redux DevTools browser extension
+- 🌐 **Redux DevTools Core** - Leverages Redux DevTools app core for state inspection
 - 🏗️ **TypeScript Support** - Full TypeScript support with proper type definitions
 - ⚡ **Production Safe** - Automatically disabled in production builds
 
@@ -23,15 +23,19 @@ yarn add @csark0812/zustand-expo-devtools
 pnpm add @csark0812/zustand-expo-devtools
 ```
 
-### Prerequisites
+### Accessing DevTools
 
-- Redux DevTools browser extension ([Chrome](https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd) / [Firefox](https://addons.mozilla.org/en-US/firefox/addon/reduxdevtools/))
+To access the DevTools interface:
+1. Start your Expo development server (`npx expo start`)
+2. Open your app in Expo Go or development build
+3. Press **Shift+M** in the Expo development menu to open DevTools
+4. Navigate to the DevTools plugin to inspect your Zustand stores
 
 ## Quick Start
 
 ```typescript
 import { create } from 'zustand';
-import { expoDevtools } from '@csark0812/zustand-expo-devtools';
+import { devtools } from '@csark0812/zustand-expo-devtools';
 
 interface CounterState {
   count: number;
@@ -40,7 +44,7 @@ interface CounterState {
 }
 
 const useCounterStore = create<CounterState>()(
-  expoDevtools(
+  devtools(
     (set) => ({
       count: 0,
       increment: () => set((state) => ({ count: state.count + 1 }), false, 'increment'),
@@ -55,15 +59,17 @@ const useCounterStore = create<CounterState>()(
 
 ## How It Works
 
-1. **Store Integration**: Wrap your Zustand store with the `expoDevtools` middleware
-2. **Expo DevTools**: Open Expo DevTools in your browser during development
-3. **Redux DevTools**: The plugin automatically connects to the Redux DevTools browser extension
+This plugin provides the same functionality as Zustand's built-in `devtools` middleware, but integrated with Expo's DevTools platform:
+
+1. **Store Integration**: Wrap your Zustand store with the `devtools` middleware (same API as Zustand's built-in devtools)
+2. **Expo DevTools**: Press **Shift+M** in your Expo development menu to open DevTools
+3. **DevTools Plugin**: Navigate to the DevTools plugin to inspect your stores
 4. **Debug**: Inspect state, track actions, and time-travel through your store's history
 
 ## Configuration Options
 
 ```typescript
-interface ExpoDevtoolsOptions {
+interface DevtoolsOptions {
   name?: string;                 // Store name (default: 'zustand')
   enabled?: boolean;            // Enable/disable devtools (default: true)
   anonymousActionType?: string; // Default action name (default: 'anonymous')
@@ -77,7 +83,7 @@ For better debugging experience, provide action names when updating state:
 
 ```typescript
 const useStore = create<State>()(
-  expoDevtools(
+  devtools(
     (set) => ({
       // ... your state
       updateUser: (user) => set({ user }, false, 'updateUser'),
@@ -97,10 +103,10 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { expoDevtools } from '@csark0812/zustand-expo-devtools';
+import { devtools } from '@csark0812/zustand-expo-devtools';
 
 const useStore = create<State>()(
-  expoDevtools(
+  devtools(
     persist(
       immer((set) => ({
         // ... your state and actions
@@ -124,7 +130,6 @@ The devtools middleware is automatically disabled in production builds, so you d
 - Expo SDK 53+
 - Zustand 5.0.5+
 - React Native / Expo development environment
-- Redux DevTools browser extension for debugging
 
 ## Development
 
@@ -169,7 +174,7 @@ MIT © [Christopher Sarkissian](https://github.com/csark0812)
 
 - [Zustand](https://github.com/pmndrs/zustand) - 🐻 Bear necessities for state management in React
 - [Expo DevTools](https://docs.expo.dev/debugging/devtools/) - Expo's built-in debugging tools
-- [Redux DevTools Extension](https://github.com/reduxjs/redux-devtools) - Browser extension for debugging Redux
+- [Redux DevTools](https://github.com/reduxjs/redux-devtools) - DevTools core integration
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -182,3 +187,12 @@ MIT
 - [Zustand](https://github.com/pmndrs/zustand) - The state management library
 - [Expo DevTools](https://docs.expo.dev/debugging/devtools/) - Expo's debugging tools
 - [Redux DevTools](https://github.com/reduxjs/redux-devtools) - Inspiration for this project
+
+## Inspiration & Credits
+
+This project was inspired by:
+- [redux-devtools-expo-dev-plugin](https://github.com/matt-oakes/redux-devtools-expo-dev-plugin) - Redux DevTools integration for Expo
+- [zustand-expo-devtools](https://github.com/jhonny1525/zustand-expo-devtools) - Previous Zustand DevTools implementation
+
+Built using:
+- [Expo DevTools Plugins](https://docs.expo.dev/debugging/devtools-plugins/) - Expo's DevTools plugin architecture
