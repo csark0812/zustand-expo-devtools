@@ -1,9 +1,12 @@
 {
   "expo": {
-    "name": "zustand-expo-devtools",
-    "slug": "zustand-expo-devtools",
+    "name": "webui",
+    "slug": "webui",
     "web": {
       "bundler": "metro"
+    },
+    "experiments": {
+      "baseUrl": "/_expo/plugins/@csark0812/zustand-expo-devtools"
     }
   }
 }
