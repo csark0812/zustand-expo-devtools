@@ -1,10 +1,9 @@
 {
   "expo": {
+    "name": "zustand-expo-devtools",
+    "slug": "zustand-expo-devtools",
     "web": {
       "bundler": "metro"
-    },
-    "experiments": {
-      "baseUrl": "/_expo/plugins/plugin"
     }
   }
 }
