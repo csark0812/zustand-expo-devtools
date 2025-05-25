@@ -1,3 +1,5 @@
+// @ts-nocheck - TypeScript doesn't recognize that devtools and zustand are using the same
+// zustand package for this example because devtools is referencing files via alias
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { persist, createJSONStorage } from "zustand/middleware";
