@@ -152,6 +152,9 @@ To develop the plugin:
 # Install dependencies
 npm install
 
+# For development (rebuilds on changes)
+npm run build:dev
+
 # Build the plugin
 npm run build
 
@@ -161,6 +164,8 @@ npm run web:export
 # Build everything
 npm run build:all
 ```
+
+**Development Workflow**: After making changes to the plugin source code, run `npm run build:dev` in the root folder to rebuild the library. This will update the compiled code that the example app uses for testing your changes.
 
 ## Contributing
 

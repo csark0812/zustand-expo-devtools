@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2025-05-25
+
 ### Added
-- GitHub Actions workflow for automated releases
-- Release scripts for version management
+- Complete rewrite with fully integrated Redux DevTools Extension UI
+- Custom WebUI built with @redux-devtools/app-core for seamless DevTools experience
+- Redux-style middleware API for handling devtools communication
+- Persistent store configuration with redux-persist and localforage
+- Enhanced state monitoring with improved action tracking
+- Ping/pong message handling for connection testing
+- Full TypeScript rewrite with improved type definitions
+- Build scripts for automated WebUI compilation and distribution
 
 ## [0.1.6] - 2025-05-25
 
@@ -30,5 +38,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Seamless Expo integration
 - Works with other Zustand middleware (immer, persist)
 
-[Unreleased]: https://github.com/csark0812/zustand-expo-devtools/compare/v0.1.6...HEAD
-[0.1.6]: https://github.com/csark0812/zustand-expo-devtools/releases/tag/v0.1.6
