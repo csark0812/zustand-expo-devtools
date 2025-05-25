@@ -1,6 +1,6 @@
 {
 	"name": "@csark0812/zustand-expo-devtools",
-	"version": "0.1.8",
+	"version": "1.0.0",
 	"description": "A new DevTools plugin created by create-dev-plugin",
 	"main": "build/index.js",
 	"types": "build/index.d.ts",
