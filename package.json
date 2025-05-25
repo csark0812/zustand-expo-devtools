@@ -1,6 +1,6 @@
 {
 	"name": "@csark0812/zustand-expo-devtools",
-	"version": "1.0.5",
+	"version": "2.0.0",
 	"description": "A new DevTools plugin created by create-dev-plugin",
 	"main": "build/index.js",
 	"types": "build/index.d.ts",
@@ -19,8 +19,15 @@
 		"release:minor": "npm version minor && git push && git push --tags",
 		"release:major": "npm version major && git push && git push --tags"
 	},
-	"keywords": ["expo", "devtools"],
-	"files": ["build", "dist", "expo-module.config.json"],
+	"keywords": [
+		"expo",
+		"devtools"
+	],
+	"files": [
+		"build",
+		"dist",
+		"expo-module.config.json"
+	],
 	"license": "MIT",
 	"devDependencies": {
 		"@types/node": "^22.15.21",
