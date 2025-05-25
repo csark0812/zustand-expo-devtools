@@ -3,7 +3,7 @@ import { immer } from "zustand/middleware/immer";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useShallow } from "zustand/react/shallow";
-import { expoDevtools } from "zustand-expo-devtools";
+import { expoDevtools } from "@csark0812/zustand-expo-devtools";
 
 // AsyncStorage adapter for Zustand
 const asyncStorage = {
