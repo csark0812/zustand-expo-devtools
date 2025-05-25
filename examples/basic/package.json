@@ -40,7 +40,7 @@
 		"react-native-web": "~0.20.0",
 		"react-native-webview": "13.13.5",
 		"zustand": "^5.0.5",
-		"zustand-expo-devtools": "git+https://github.com/csark0812/zustand-expo-devtools.git"
+		"zustand-expo-devtools": "@csark0812/zustand-expo-devtools"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.25.2",
@@ -48,6 +48,5 @@
 		"eslint": "^9.25.0",
 		"eslint-config-expo": "~9.2.0",
 		"typescript": "~5.8.3"
-	},
-	"private": true
+	}
 }
