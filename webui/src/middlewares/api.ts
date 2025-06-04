@@ -168,9 +168,7 @@ function connect(client: DevToolsPluginClient) {
 			action: JSON.stringify({
 				type: data.type || "State Update",
 			}),
-			payload: JSON.stringify({
-				state: data.state,
-			}),
+			payload: JSON.stringify(data.state),
 			nextActionId: Date.now(), // Use timestamp as action ID
 			maxAge: 50, // Keep last 50 actions
 			id: data.name || "zustand-store",
