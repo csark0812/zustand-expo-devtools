@@ -9,11 +9,11 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@expo/metro-runtime": "~5.0.4",
+    "@expo/metro-runtime": "~5.0.5",
     "@redux-devtools/app-core": "^1.1.2",
     "@redux-devtools/ui": "^1.4.0",
-    "expo": "~53.0.3",
-    "expo-status-bar": "~2.2.2",
+    "expo": "~53.0.23",
+    "expo-status-bar": "~2.2.3",
     "jsan": "^3.1.14",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
