@@ -12,10 +12,13 @@
 		"dev": "cd examples/basic && npx expo start",
 		"build:dev": "npm run build:all && cd examples/basic && npm i",
 		"clean": "expo-module clean",
-		"prepare": "expo-module prepare",
+		"prepare:module": "expo-module prepare",
 		"prepublishOnly": "expo-module prepare && expo-module prepublishOnly && npm run web:export",
 		"web:dev": "cd webui && npx expo start -w",
 		"web:export": "./scripts/build-webui.js",
+		"test": "jest",
+		"test:watch": "jest --watch",
+		"test:coverage": "jest --coverage",
 		"release:patch": "npm version patch && git push && git push --tags",
 		"release:minor": "npm version minor && git push && git push --tags",
 		"release:major": "npm version major && git push && git push --tags"
@@ -31,12 +34,20 @@
 	],
 	"license": "MIT",
 	"devDependencies": {
+		"@redux-devtools/app-core": "^1.0.0",
+		"@types/jest": "^29.5.14",
 		"@types/node": "^22.15.21",
 		"@types/react": "~19.0.10",
 		"expo": "~53.0.3",
 		"expo-module-scripts": "^4.1.7",
+		"jest": "^29.7.0",
+		"jsan": "^3.1.14",
 		"react": "19.0.0",
-		"typescript": "~5.8.3"
+		"react-redux": "^9.2.0",
+		"redux": "^5.0.1",
+		"ts-jest": "^29.2.5",
+		"typescript": "~5.8.3",
+		"zustand": "^5.0.5"
 	},
 	"peerDependencies": {
 		"expo": "*",
