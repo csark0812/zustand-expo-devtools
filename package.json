@@ -38,7 +38,7 @@
 		"@types/jest": "^29.5.14",
 		"@types/node": "^22.15.21",
 		"@types/react": "~19.0.10",
-		"expo": "~53.0.3",
+		"expo": "~53.0.23",
 		"expo-module-scripts": "^4.1.7",
 		"jest": "^29.7.0",
 		"jsan": "^3.1.14",
