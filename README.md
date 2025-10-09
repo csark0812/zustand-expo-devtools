@@ -171,6 +171,19 @@ npm run build:all
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+### Automated Releases
+
+This repository uses automated versioning and publishing when PRs are merged to `main`. The version bump type is determined by PR labels:
+
+- **`major`** label → Major version bump (e.g., 2.0.0 → 3.0.0) - Breaking changes
+- **`minor`** label → Minor version bump (e.g., 2.0.0 → 2.1.0) - New features  
+- **`patch`** label → Patch version bump (e.g., 2.0.0 → 2.0.1) - Bug fixes (default)
+
+To control the release type:
+1. Add the appropriate label (`major`, `minor`, or `patch`) to your PR
+2. If no label is added, it defaults to a `patch` release
+3. When the PR is merged, the version will be automatically bumped and published to npm
+
 ## License
 
 MIT © [Christopher Sarkissian](https://github.com/csark0812)
