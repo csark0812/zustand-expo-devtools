@@ -46,10 +46,30 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       
-      - name: Bump version (patch)
+      - name: Determine version bump type
+        id: bump_type
+        run: |
+          LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
+          echo "PR Labels: $LABELS"
+          
+          # Check for major, minor, or patch labels
+          if echo "$LABELS" | grep -q "major"; then
+            echo "BUMP_TYPE=major" >> $GITHUB_OUTPUT
+            echo "Detected MAJOR release from PR labels"
+          elif echo "$LABELS" | grep -q "minor"; then
+            echo "BUMP_TYPE=minor" >> $GITHUB_OUTPUT
+            echo "Detected MINOR release from PR labels"
+          else
+            echo "BUMP_TYPE=patch" >> $GITHUB_OUTPUT
+            echo "Detected PATCH release (default or from PR labels)"
+          fi
+      
+      - name: Bump version
         id: version
         run: |
-          npm version patch -m "chore: bump version to %s [skip ci]"
+          BUMP_TYPE="${{ steps.bump_type.outputs.BUMP_TYPE }}"
+          echo "Bumping $BUMP_TYPE version..."
+          npm version $BUMP_TYPE -m "chore: bump version to %s [skip ci]"
           echo "NEW_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
       
       - name: Push changes and tags
@@ -67,9 +87,11 @@ jobs:
           tag_name: v${{ steps.version.outputs.NEW_VERSION }}
           name: Release ${{ steps.version.outputs.NEW_VERSION }}
           body: |
-            ## Automated Release ${{ steps.version.outputs.NEW_VERSION }}
+            ## Automated Release ${{ steps.version.outputs.NEW_VERSION }} [${{ steps.bump_type.outputs.BUMP_TYPE }}]
             
             This version was automatically published after PR #${{ github.event.pull_request.number }} was merged.
+            
+            **Release Type**: `${{ steps.bump_type.outputs.BUMP_TYPE }}`
             
             ### Installation
             ```bash
