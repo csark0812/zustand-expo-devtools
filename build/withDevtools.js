@@ -46,7 +46,7 @@ const expoDevtoolsImpl = (fn, devtoolsOptions = {}) => (set, get, api) => {
     // State management
     let isRecording = true;
     let client = null;
-    let isInitialized = false;
+    let isInitializing = true;
     // Helper function to safely parse JSON strings
     const safeJsonParse = (jsonString, errorContext) => {
         try {
@@ -162,12 +162,17 @@ const expoDevtoolsImpl = (fn, devtoolsOptions = {}) => (set, get, api) => {
         isRecording = originalIsRecording;
     };
     // Create action object from nameOrAction parameter
-    const createAction = (nameOrAction) => {
+    const createAction = (nameOrAction, replace) => {
         if (nameOrAction === undefined) {
-            // If no action is provided and we're not yet initialized,
-            // this is likely a persist rehydration
-            if (!isInitialized) {
-                return { type: "@@HYDRATE" };
+            // If setState is called without an action name during store initialization,
+            // it's likely from persist middleware rehydrating state
+            if (isInitializing) {
+                return { type: "@@REHYDRATE" };
+            }
+            // Persist middleware calls setState with replace=true when rehydrating
+            // This is a strong signal that it's a rehydration action
+            if (replace === true) {
+                return { type: "@@REHYDRATE" };
             }
             return { type: anonymousActionType || "anonymous" };
         }
@@ -184,7 +189,7 @@ const expoDevtoolsImpl = (fn, devtoolsOptions = {}) => (set, get, api) => {
             : originalSetState(state);
         if (!isRecording)
             return result;
-        const action = createAction(nameOrAction);
+        const action = createAction(nameOrAction, replace);
         sendStateUpdate(action, get());
         return result;
     };
@@ -196,12 +201,14 @@ const expoDevtoolsImpl = (fn, devtoolsOptions = {}) => (set, get, api) => {
     };
     // Initialize the store and client
     const initialState = fn(api.setState, get, api);
+    // Mark initialization as complete
+    // Any setState calls after this point are not from persist rehydration
+    isInitializing = false;
     // Initialize client asynchronously
     initializeClient().then(() => {
         if (client) {
             sendInit(initialState);
         }
-        isInitialized = true;
     });
     return initialState;
 };
