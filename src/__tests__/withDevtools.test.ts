@@ -578,15 +578,10 @@ describe('withDevtools.ts - Expo DevTools middleware', () => {
 			const originalSetState2 = jest.fn();
 			const mockApi2 = { ...mockApi, setState: originalSetState2 };
 			
-			// Store 1: with persist (calls setState during init)
-			const rehydratedState1 = { count: 100, name: 'store1' };
-			const storeInit1: StateCreator<any, [], []> = (set, get, api) => {
-				mockGet.mockReturnValue(rehydratedState1);
-				api.setState(rehydratedState1);
-				return initialState;
-			};
+			// Store 1: with persist
+			const storeInit1: StateCreator<any, [], []> = () => initialState;
 			
-			// Store 2: without persist (no setState during init)
+			// Store 2: without persist
 			const storeInit2: StateCreator<any, [], []> = () => ({ count: 0, name: 'store2' });
 			
 			const middleware1 = devtools(storeInit1, { name: 'store1' });
@@ -598,19 +593,27 @@ describe('withDevtools.ts - Expo DevTools middleware', () => {
 			// Wait for initialization
 			await new Promise(resolve => setTimeout(resolve, 100));
 			
-			// Check that store1 had @@REHYDRATE
+			// Clear init messages
+			mockClient.sendMessage.mockClear();
+			
+			// Store 1: Simulate persist calling setState with replace=true
+			const rehydratedState1 = { count: 100, name: 'store1-rehydrated' };
+			mockGet.mockReturnValue(rehydratedState1);
+			(mockApi1.setState as any)(rehydratedState1, true); // Persist uses replace=true
+			
+			// Check that store1 setState with replace=true got @@REHYDRATE
 			const store1Calls = mockClient.sendMessage.mock.calls.filter((call: any) => 
 				call[0] === 'state' && call[1]?.name === 'store1'
 			);
 			expect(store1Calls.some((call: any) => call[1]?.type === '@@REHYDRATE')).toBe(true);
 			
-			// Clear and test store2 post-init behavior
+			// Clear and test store2 behavior (no persist)
 			mockClient.sendMessage.mockClear();
 			const newState2 = { count: 50, name: 'store2-updated' };
 			mockGet.mockReturnValue(newState2);
-			(mockApi2.setState as any)(newState2);
+			(mockApi2.setState as any)(newState2); // No replace flag
 			
-			// Store2 should use 'anonymous' (not @@REHYDRATE) since it never had persist
+			// Store2 should use 'anonymous' (not @@REHYDRATE) since replace=false
 			expect(mockClient.sendMessage).toHaveBeenCalledWith('state', expect.objectContaining({
 				name: 'store2',
 				type: 'anonymous',
