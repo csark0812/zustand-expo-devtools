@@ -451,31 +451,35 @@ describe('withDevtools.ts - Expo DevTools middleware', () => {
 	});
 
 	describe('Persist rehydration', () => {
-		it('should use @@HYDRATE action name for setState calls before client initialization', () => {
-			// This test verifies that when persist rehydrates before the devtools client
-			// is ready, the action name will be @@HYDRATE (even though the message won't
-			// be sent until the client is ready)
-			
-			// Create a store initializer that simulates persist calling setState
-			// Note: In real usage, persist calls setState during store creation,
-			// which happens before the async client initialization completes
-			const storeInitializer: StateCreator<any, [], []> = (set, get, api) => {
-				// This represents what persist middleware does - it calls setState to rehydrate
-				// Because this happens synchronously during store creation, isInitialized is still false
-				return initialState;
-			};
-			
-			const middleware = devtools(storeInitializer);
-			const result = middleware(mockSet, mockGet, mockApi);
-			
-			// The middleware should return the initial state
-			expect(result).toEqual(initialState);
-			
-			// Note: The @@HYDRATE action name is used internally when setState is called
-			// before initialization, but since the client isn't ready yet, the message
-			// isn't sent immediately. This is by design - persist rehydration happens
-			// before devtools can capture it.
-		});
+	it('should use @@REHYDRATE action name when setState is called with replace=true', async () => {
+		// This test verifies that when persist rehydrates (using setState with replace=true),
+		// the action name will be @@REHYDRATE
+		
+		const originalSetState = jest.fn();
+		mockApi.setState = originalSetState;
+		
+		const storeInitializer: StateCreator<any, [], []> = () => initialState;
+		const middleware = devtools(storeInitializer);
+		
+		middleware(mockSet, mockGet, mockApi);
+		
+		// Wait for client initialization
+		await new Promise(resolve => setTimeout(resolve, 100));
+		
+		// Clear init message
+		mockClient.sendMessage.mockClear();
+		
+		// Simulate persist middleware calling setState with replace=true (no action name)
+		const rehydratedState = { count: 42, name: 'rehydrated' };
+		mockGet.mockReturnValue(rehydratedState);
+		(mockApi.setState as any)(rehydratedState, true); // replace=true, no action name
+		
+		// The setState call with replace=true should use @@REHYDRATE
+		expect(mockClient.sendMessage).toHaveBeenCalledWith('state', expect.objectContaining({
+			type: '@@REHYDRATE',
+			state: rehydratedState,
+		}));
+	});
 
 		it('should use anonymous action for setState after initialization', async () => {
 			const originalSetState = jest.fn();
@@ -497,14 +501,14 @@ describe('withDevtools.ts - Expo DevTools middleware', () => {
 			mockGet.mockReturnValue(newState);
 			(mockApi.setState as any)(newState);
 			
-			// Should use 'anonymous' instead of '@@HYDRATE'
+			// Should use 'anonymous' instead of '@@REHYDRATE'
 			expect(mockClient.sendMessage).toHaveBeenCalledWith('state', expect.objectContaining({
 				type: 'anonymous',
 				state: newState,
 			}));
 		});
 
-		it('should use custom anonymousActionType instead of @@HYDRATE after initialization', async () => {
+		it('should use custom anonymousActionType instead of @@REHYDRATE after initialization', async () => {
 			const originalSetState = jest.fn();
 			mockApi.setState = originalSetState;
 			
@@ -526,6 +530,91 @@ describe('withDevtools.ts - Expo DevTools middleware', () => {
 			// Should use custom anonymous action type
 			expect(mockClient.sendMessage).toHaveBeenCalledWith('state', expect.objectContaining({
 				type: 'CUSTOM_ANONYMOUS',
+			}));
+		});
+		
+		it('should not use @@REHYDRATE for stores without persist middleware', async () => {
+			const originalSetState = jest.fn();
+			mockApi.setState = originalSetState;
+			
+			// Store without persist - no setState calls during initialization
+			const storeInitializer: StateCreator<any, [], []> = () => initialState;
+			const middleware = devtools(storeInitializer);
+			
+			middleware(mockSet, mockGet, mockApi);
+			
+			// Wait for initialization
+			await new Promise(resolve => setTimeout(resolve, 100));
+			
+			// Clear previous calls
+			mockClient.sendMessage.mockClear();
+			
+			// Call setState after initialization without action name
+			const newState = { count: 99, name: 'test' };
+			mockGet.mockReturnValue(newState);
+			(mockApi.setState as any)(newState);
+			
+			// Should use 'anonymous', NOT '@@REHYDRATE'
+			expect(mockClient.sendMessage).toHaveBeenCalledWith('state', expect.objectContaining({
+				type: 'anonymous',
+				state: newState,
+			}));
+			
+			// Verify @@REHYDRATE was never used
+			const allCalls = mockClient.sendMessage.mock.calls;
+			const rehydrateCalls = allCalls.filter((call: any) => 
+				call[0] === 'state' && call[1]?.type === '@@REHYDRATE'
+			);
+			expect(rehydrateCalls).toHaveLength(0);
+		});
+	});
+
+	describe('Multiple store instances', () => {
+		it('should handle @@REHYDRATE per-store correctly', async () => {
+			// Create two separate store instances with different rehydration behavior
+			const originalSetState1 = jest.fn();
+			const mockApi1 = { ...mockApi, setState: originalSetState1 };
+			
+			const originalSetState2 = jest.fn();
+			const mockApi2 = { ...mockApi, setState: originalSetState2 };
+			
+			// Store 1: with persist (calls setState during init)
+			const rehydratedState1 = { count: 100, name: 'store1' };
+			const storeInit1: StateCreator<any, [], []> = (set, get, api) => {
+				mockGet.mockReturnValue(rehydratedState1);
+				api.setState(rehydratedState1);
+				return initialState;
+			};
+			
+			// Store 2: without persist (no setState during init)
+			const storeInit2: StateCreator<any, [], []> = () => ({ count: 0, name: 'store2' });
+			
+			const middleware1 = devtools(storeInit1, { name: 'store1' });
+			const middleware2 = devtools(storeInit2, { name: 'store2' });
+			
+			middleware1(mockSet, mockGet, mockApi1);
+			middleware2(mockSet, mockGet, mockApi2);
+			
+			// Wait for initialization
+			await new Promise(resolve => setTimeout(resolve, 100));
+			
+			// Check that store1 had @@REHYDRATE
+			const store1Calls = mockClient.sendMessage.mock.calls.filter((call: any) => 
+				call[0] === 'state' && call[1]?.name === 'store1'
+			);
+			expect(store1Calls.some((call: any) => call[1]?.type === '@@REHYDRATE')).toBe(true);
+			
+			// Clear and test store2 post-init behavior
+			mockClient.sendMessage.mockClear();
+			const newState2 = { count: 50, name: 'store2-updated' };
+			mockGet.mockReturnValue(newState2);
+			(mockApi2.setState as any)(newState2);
+			
+			// Store2 should use 'anonymous' (not @@REHYDRATE) since it never had persist
+			expect(mockClient.sendMessage).toHaveBeenCalledWith('state', expect.objectContaining({
+				name: 'store2',
+				type: 'anonymous',
+				state: newState2,
 			}));
 		});
 	});
