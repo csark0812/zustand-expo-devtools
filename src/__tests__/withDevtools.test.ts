@@ -5,7 +5,7 @@
 
 import { getDevToolsPluginClientAsync } from 'expo/devtools';
 import type { StateCreator, StoreApi } from 'zustand/vanilla';
-import { devtools, type ExpoDevtoolsOptions } from '../withDevtools';
+import { devtools, type ExpoDevtoolsOptions, __resetDevToolsClient } from '../withDevtools';
 
 // Mock expo/devtools
 jest.mock('expo/devtools');
@@ -20,6 +20,9 @@ describe('withDevtools.ts - Expo DevTools middleware', () => {
 	beforeEach(() => {
 		// Reset mocks
 		jest.clearAllMocks();
+		
+		// Reset singleton client state
+		__resetDevToolsClient();
 		
 		// Create mock client
 		mockClient = {
@@ -359,6 +362,91 @@ describe('withDevtools.ts - Expo DevTools middleware', () => {
 			middleware(mockSet, mockGet, mockApi);
 			
 			expect(() => (mockApi as any).devtools.cleanup()).not.toThrow();
+		});
+	});
+
+	describe('Singleton client behavior', () => {
+		it('should initialize client only once for multiple stores', async () => {
+			const storeInitializer1: StateCreator<any, [], []> = () => ({ count: 0 });
+			const storeInitializer2: StateCreator<any, [], []> = () => ({ count: 10 });
+			
+			const middleware1 = devtools(storeInitializer1, { name: 'store-1' });
+			const middleware2 = devtools(storeInitializer2, { name: 'store-2' });
+			
+			// Create two stores
+			const mockApi1 = { ...mockApi };
+			const mockApi2 = { ...mockApi };
+			
+			middleware1(mockSet, mockGet, mockApi1);
+			middleware2(mockSet, mockGet, mockApi2);
+			
+			// Wait for async initialization
+			await new Promise(resolve => setTimeout(resolve, 100));
+			
+			// getDevToolsPluginClientAsync should only be called once
+			expect(getDevToolsPluginClientAsync).toHaveBeenCalledTimes(1);
+		});
+
+		it('should log initialization message only once for multiple stores', async () => {
+			const consoleSpy = jest.spyOn(console, 'log');
+			
+			const storeInitializer1: StateCreator<any, [], []> = () => ({ count: 0 });
+			const storeInitializer2: StateCreator<any, [], []> = () => ({ count: 10 });
+			const storeInitializer3: StateCreator<any, [], []> = () => ({ count: 20 });
+			
+			const middleware1 = devtools(storeInitializer1, { name: 'store-1' });
+			const middleware2 = devtools(storeInitializer2, { name: 'store-2' });
+			const middleware3 = devtools(storeInitializer3, { name: 'store-3' });
+			
+			// Create three stores
+			const mockApi1 = { ...mockApi };
+			const mockApi2 = { ...mockApi };
+			const mockApi3 = { ...mockApi };
+			
+			middleware1(mockSet, mockGet, mockApi1);
+			middleware2(mockSet, mockGet, mockApi2);
+			middleware3(mockSet, mockGet, mockApi3);
+			
+			// Wait for async initialization
+			await new Promise(resolve => setTimeout(resolve, 100));
+			
+			// Should only log once
+			const initLogs = consoleSpy.mock.calls.filter(call => 
+				call[0] && call[0].includes('[Zustand DevTools] Client initialized')
+			);
+			expect(initLogs.length).toBe(1);
+			
+			consoleSpy.mockRestore();
+		});
+
+		it('should send init message for each store independently', async () => {
+			const store1State = { count: 0 };
+			const store2State = { count: 10 };
+			
+			const storeInitializer1: StateCreator<any, [], []> = () => store1State;
+			const storeInitializer2: StateCreator<any, [], []> = () => store2State;
+			
+			const middleware1 = devtools(storeInitializer1, { name: 'store-1' });
+			const middleware2 = devtools(storeInitializer2, { name: 'store-2' });
+			
+			const mockApi1 = { ...mockApi };
+			const mockApi2 = { ...mockApi };
+			
+			middleware1(mockSet, mockGet, mockApi1);
+			middleware2(mockSet, mockGet, mockApi2);
+			
+			// Wait for async initialization
+			await new Promise(resolve => setTimeout(resolve, 100));
+			
+			// Should have called sendMessage with init for each store
+			expect(mockClient.sendMessage).toHaveBeenCalledWith('init', {
+				name: 'store-1',
+				state: store1State,
+			});
+			expect(mockClient.sendMessage).toHaveBeenCalledWith('init', {
+				name: 'store-2',
+				state: store2State,
+			});
 		});
 	});
 

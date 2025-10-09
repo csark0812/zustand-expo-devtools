@@ -47,6 +47,7 @@ declare module "zustand/vanilla" {
     }
 }
 export type NamedSet<T> = WithExpoDevtools<StoreApi<T>>["setState"];
+export declare const __resetDevToolsClient: () => void;
 export declare const devtools: ExpoDevtools;
 export {};
 //# sourceMappingURL=withDevtools.d.ts.map

@@ -1,4 +1,41 @@
 import { getDevToolsPluginClientAsync } from "expo/devtools";
+// Singleton client shared across all stores
+let sharedClient = null;
+let clientInitializationPromise = null;
+let clientInitialized = false;
+// Initialize the shared Expo devtools client (singleton)
+const getOrCreateClient = async () => {
+    // If client is already initialized, return it
+    if (sharedClient) {
+        return sharedClient;
+    }
+    // If initialization is in progress, wait for it
+    if (clientInitializationPromise) {
+        return clientInitializationPromise;
+    }
+    // Start initialization
+    clientInitializationPromise = (async () => {
+        try {
+            sharedClient = await getDevToolsPluginClientAsync("zustand-expo-devtools");
+            if (!clientInitialized) {
+                console.log("[Zustand DevTools] Client initialized");
+                clientInitialized = true;
+            }
+            return sharedClient;
+        }
+        catch (error) {
+            console.error("[Zustand DevTools] Failed to initialize client:", error);
+            return null;
+        }
+    })();
+    return clientInitializationPromise;
+};
+// Internal function to reset client state (for testing purposes)
+export const __resetDevToolsClient = () => {
+    sharedClient = null;
+    clientInitializationPromise = null;
+    clientInitialized = false;
+};
 const expoDevtoolsImpl = (fn, devtoolsOptions = {}) => (set, get, api) => {
     const { enabled, anonymousActionType, store, ...options } = devtoolsOptions;
     // Check if devtools should be enabled (default to true)
@@ -79,27 +116,25 @@ const expoDevtoolsImpl = (fn, devtoolsOptions = {}) => (set, get, api) => {
     };
     // Initialize the Expo devtools client
     const initializeClient = async () => {
-        try {
-            client = await getDevToolsPluginClientAsync("zustand-expo-devtools");
-            // Set up message listener for devtools actions
-            client.addMessageListener("dispatch", (message) => {
-                if (!message.type &&
-                    message.instanceId !== (options.name || "zustand-store"))
-                    return;
-                switch (message.type) {
-                    case "ACTION":
-                        handleActionMessage(message);
-                        break;
-                    case "DISPATCH":
-                        handleDispatchMessage(message);
-                        break;
-                }
-            });
-            console.log("[Zustand DevTools] Client initialized", options.name || "zustand-store");
+        // Get or create the shared client
+        client = await getOrCreateClient();
+        if (!client) {
+            return;
         }
-        catch (error) {
-            console.error("[Zustand DevTools] Failed to initialize client:", error);
-        }
+        // Set up message listener for devtools actions
+        client.addMessageListener("dispatch", (message) => {
+            if (!message.type &&
+                message.instanceId !== (options.name || "zustand-store"))
+                return;
+            switch (message.type) {
+                case "ACTION":
+                    handleActionMessage(message);
+                    break;
+                case "DISPATCH":
+                    handleDispatchMessage(message);
+                    break;
+            }
+        });
     };
     // Send init message to webui
     const sendInit = (state) => {
