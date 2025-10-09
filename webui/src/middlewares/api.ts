@@ -195,10 +195,10 @@ export function api(inStore: MiddlewareAPI<Dispatch<StoreAction>, StoreState>) {
 		const result = next(action);
 		switch (action.type) {
 			case actions.EMIT:
-				if (devToolsPluginClient) emit(action);
+				if (devToolsPluginClient) emit(action as EmitAction);
 				break;
 			case LIFTED_ACTION:
-				dispatchRemoteAction(action);
+				dispatchRemoteAction(action as LiftedActionAction);
 				break;
 		}
 		return result;
