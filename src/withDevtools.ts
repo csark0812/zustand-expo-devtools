@@ -131,6 +131,7 @@ const expoDevtoolsImpl: ExpoDevtoolsImpl =
 		// State management
 		let isRecording = true;
 		let client: DevToolsClient | null = null;
+		let isInitialized = false;
 
 		// Helper function to safely parse JSON strings
 		const safeJsonParse = (jsonString: string, errorContext: string) => {
@@ -235,7 +236,7 @@ const expoDevtoolsImpl: ExpoDevtoolsImpl =
 					}
 				});
 
-				console.log("[Zustand DevTools] Client initialized");
+				console.log("[Zustand DevTools] Client initialized", options.name || "zustand-store");
 			} catch (error) {
 				console.error("[Zustand DevTools] Failed to initialize client:", error);
 			}
@@ -273,6 +274,11 @@ const expoDevtoolsImpl: ExpoDevtoolsImpl =
 		// Create action object from nameOrAction parameter
 		const createAction = (nameOrAction?: Action): { type: string } => {
 			if (nameOrAction === undefined) {
+				// If no action is provided and we're not yet initialized,
+				// this is likely a persist rehydration
+				if (!isInitialized) {
+					return { type: "re zustand persist" };
+				}
 				return { type: anonymousActionType || "anonymous" };
 			}
 
@@ -318,6 +324,7 @@ const expoDevtoolsImpl: ExpoDevtoolsImpl =
 			if (client) {
 				sendInit(initialState);
 			}
+			isInitialized = true;
 		});
 
 		return initialState;
