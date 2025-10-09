@@ -174,6 +174,7 @@ const expoDevtoolsImpl: ExpoDevtoolsImpl =
 		let isRecording = true;
 		let client: DevToolsClient | null = null;
 		let isInitialized = false;
+		let hasSeenNamedAction = false;
 
 		// Helper function to safely parse JSON strings
 		const safeJsonParse = (jsonString: string, errorContext: string) => {
@@ -315,13 +316,16 @@ const expoDevtoolsImpl: ExpoDevtoolsImpl =
 		// Create action object from nameOrAction parameter
 		const createAction = (nameOrAction?: Action): { type: string } => {
 			if (nameOrAction === undefined) {
-				// If no action is provided and we're not yet initialized,
-				// this is likely a persist rehydration
-				if (!isInitialized) {
-					return { type: "@@HYDRATE" };
+				// If no action is provided and we haven't seen any named actions yet,
+				// this is likely a persist middleware rehydration
+				if (!hasSeenNamedAction) {
+					return { type: "@@REHYDRATE" };
 				}
 				return { type: anonymousActionType || "anonymous" };
 			}
+
+			// Mark that we've seen a named action
+			hasSeenNamedAction = true;
 
 			if (typeof nameOrAction === "string") {
 				return { type: nameOrAction };
