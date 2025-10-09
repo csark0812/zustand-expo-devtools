@@ -277,7 +277,7 @@ const expoDevtoolsImpl: ExpoDevtoolsImpl =
 				// If no action is provided and we're not yet initialized,
 				// this is likely a persist rehydration
 				if (!isInitialized) {
-					return { type: "re zustand persist" };
+					return { type: "@@HYDRATE" };
 				}
 				return { type: anonymousActionType || "anonymous" };
 			}
