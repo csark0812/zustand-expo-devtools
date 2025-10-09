@@ -173,7 +173,7 @@ const expoDevtoolsImpl: ExpoDevtoolsImpl =
 		// State management
 		let isRecording = true;
 		let client: DevToolsClient | null = null;
-		let isInitialized = false;
+		let isInitializing = true;
 
 		// Helper function to safely parse JSON strings
 		const safeJsonParse = (jsonString: string, errorContext: string) => {
@@ -312,43 +312,51 @@ const expoDevtoolsImpl: ExpoDevtoolsImpl =
 			isRecording = originalIsRecording;
 		};
 
-		// Create action object from nameOrAction parameter
-		const createAction = (nameOrAction?: Action): { type: string } => {
-			if (nameOrAction === undefined) {
-				// If no action is provided and we're not yet initialized,
-				// this is likely a persist rehydration
-				if (!isInitialized) {
-					return { type: "@@HYDRATE" };
-				}
-				return { type: anonymousActionType || "anonymous" };
+	// Create action object from nameOrAction parameter
+	const createAction = (
+		nameOrAction?: Action,
+		replace?: boolean,
+	): { type: string } => {
+		if (nameOrAction === undefined) {
+			// If setState is called without an action name during store initialization,
+			// it's likely from persist middleware rehydrating state
+			if (isInitializing) {
+				return { type: "@@REHYDRATE" };
 			}
-
-			if (typeof nameOrAction === "string") {
-				return { type: nameOrAction };
+			// Persist middleware calls setState with replace=true when rehydrating
+			// This is a strong signal that it's a rehydration action
+			if (replace === true) {
+				return { type: "@@REHYDRATE" };
 			}
+			return { type: anonymousActionType || "anonymous" };
+		}
 
-			return nameOrAction;
-		};
+		if (typeof nameOrAction === "string") {
+			return { type: nameOrAction };
+		}
 
-		// Override setState to capture actions and send to devtools
-		const originalSetState = api.setState;
-		api.setState = (
-			state: Parameters<typeof originalSetState>[0],
-			replace?: boolean,
-			nameOrAction?: Action,
-		) => {
-			const result =
-				replace === true
-					? originalSetState(state, true)
-					: originalSetState(state);
+		return nameOrAction;
+	};
 
-			if (!isRecording) return result;
+	// Override setState to capture actions and send to devtools
+	const originalSetState = api.setState;
+	api.setState = (
+		state: Parameters<typeof originalSetState>[0],
+		replace?: boolean,
+		nameOrAction?: Action,
+	) => {
+		const result =
+			replace === true
+				? originalSetState(state, true)
+				: originalSetState(state);
 
-			const action = createAction(nameOrAction);
-			sendStateUpdate(action, get());
+		if (!isRecording) return result;
 
-			return result;
-		};
+		const action = createAction(nameOrAction, replace);
+		sendStateUpdate(action, get());
+
+		return result;
+	};
 
 		// Add devtools cleanup method
 		(api as typeof api & { devtools: { cleanup: () => void } }).devtools = {
@@ -359,13 +367,16 @@ const expoDevtoolsImpl: ExpoDevtoolsImpl =
 
 		// Initialize the store and client
 		const initialState = fn(api.setState, get, api);
+		
+		// Mark initialization as complete
+		// Any setState calls after this point are not from persist rehydration
+		isInitializing = false;
 
 		// Initialize client asynchronously
 		initializeClient().then(() => {
 			if (client) {
 				sendInit(initialState);
 			}
-			isInitialized = true;
 		});
 
 		return initialState;
