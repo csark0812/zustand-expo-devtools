@@ -33,10 +33,13 @@
 	"devDependencies": {
 		"@types/node": "^22.15.21",
 		"@types/react": "~19.0.10",
+		"@vitest/ui": "^3.2.4",
 		"expo": "~53.0.23",
 		"expo-module-scripts": "^4.1.7",
+		"happy-dom": "^19.0.2",
 		"react": "19.0.0",
-		"typescript": "~5.8.3"
+		"typescript": "~5.8.3",
+		"vitest": "^3.2.4"
 	},
 	"peerDependencies": {
 		"expo": "*",
