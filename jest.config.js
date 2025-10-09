@@ -21,6 +21,7 @@ module.exports = {
 				jsx: 'react',
 				types: ['node', 'jest'],
 				skipLibCheck: true,
+				typeRoots: ['./node_modules/@types', './webui/src'],
 			},
 		}],
 	},
