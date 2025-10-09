@@ -1,0 +1,84 @@
+name: Publish on PR Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  test-and-publish:
+    # Only run if the PR was merged (not just closed)
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install webui dependencies
+        run: npm ci
+        working-directory: ./webui
+      
+      - name: Build package
+        run: npm run build:all
+      
+      - name: Run test suite
+        run: npm test
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Bump version (patch)
+        id: version
+        run: |
+          npm version patch -m "chore: bump version to %s [skip ci]"
+          echo "NEW_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+      
+      - name: Push changes and tags
+        run: |
+          git push origin main --follow-tags
+      
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.NEW_VERSION }}
+          name: Release ${{ steps.version.outputs.NEW_VERSION }}
+          body: |
+            ## Automated Release ${{ steps.version.outputs.NEW_VERSION }}
+            
+            This version was automatically published after PR #${{ github.event.pull_request.number }} was merged.
+            
+            ### Installation
+            ```bash
+            npm install @csark0812/zustand-expo-devtools@${{ steps.version.outputs.NEW_VERSION }}
+            ```
+            
+            ### Changes
+            See the [CHANGELOG](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
