@@ -6,6 +6,10 @@
 	"types": "build/index.d.ts",
 	"sideEffects": false,
 	"homepage": "https://github.com/csark0812/zustand-expo-devtools",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/csark0812/zustand-expo-devtools"
+	},
 	"scripts": {
 		"build": "expo-module build",
 		"build:all": "expo-module prepare && npm run web:export",
