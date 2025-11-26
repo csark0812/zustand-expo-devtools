@@ -1,0 +1,136 @@
+name: Publish
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 2.2.0). Leave empty for auto-bump.'
+        required: false
+      bump_type:
+        description: 'Version bump type (ignored if version is specified)'
+        required: false
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write  # Required for OIDC
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Install npm@latest
+        run: npm install -g npm@latest
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install webui dependencies
+        run: npm ci
+        working-directory: ./webui
+      
+      - name: Build package
+        run: npm run build:all
+      
+      - name: Run test suite
+        run: npm test
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            # Manual dispatch: use provided version or bump
+            if [ -n "${{ inputs.version }}" ]; then
+              NEW_VERSION="${{ inputs.version }}"
+              echo "Using provided version: $NEW_VERSION"
+              npm version $NEW_VERSION --no-git-tag-version --allow-same-version
+            else
+              BUMP_TYPE="${{ inputs.bump_type }}"
+              echo "Bumping $BUMP_TYPE version..."
+              npm version $BUMP_TYPE --no-git-tag-version
+              NEW_VERSION=$(node -p "require('./package.json').version")
+            fi
+          else
+            # PR merge: detect from labels
+            LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
+            echo "PR Labels: $LABELS"
+            
+            if echo "$LABELS" | grep -q "major"; then
+              BUMP_TYPE="major"
+              echo "Detected MAJOR release from PR labels"
+            elif echo "$LABELS" | grep -q "minor"; then
+              BUMP_TYPE="minor"
+              echo "Detected MINOR release from PR labels"
+            else
+              BUMP_TYPE="patch"
+              echo "Detected PATCH release (default or from PR labels)"
+            fi
+            
+            echo "Bumping $BUMP_TYPE version..."
+            npm version $BUMP_TYPE --no-git-tag-version
+            NEW_VERSION=$(node -p "require('./package.json').version")
+          fi
+          
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          # Commit all changes including build artifacts
+          git add -A
+          git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+          git tag "v$NEW_VERSION"
+      
+      - name: Push changes and tags
+        run: |
+          git push origin main --follow-tags
+      
+      - name: Publish to npm
+        run: npm publish
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.NEW_VERSION }}
+          name: Release ${{ steps.version.outputs.NEW_VERSION }}
+          body: |
+            ## Automated Release ${{ steps.version.outputs.NEW_VERSION }}
+            
+            ${{ github.event_name == 'workflow_dispatch' && 'This version was manually published via workflow dispatch.' || format('This version was automatically published after PR #{0} was merged.', github.event.pull_request.number) }}
+            
+            ### Installation
+            ```bash
+            npm install @csark0812/zustand-expo-devtools@${{ steps.version.outputs.NEW_VERSION }}
+            ```
+            
+            ### Changes
+            See the [CHANGELOG](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
