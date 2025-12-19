@@ -188,6 +188,7 @@ The store is configured with the `expoDevtools` middleware that provides:
 - **Action Tracking**: All state changes are tracked with descriptive action names
 - **Time Travel Debugging**: Navigate through state history
 - **Production Safety**: Automatically disabled in production builds
+- **Custom Serialization**: Handles complex objects like Date, Map, Set, etc.
 
 ### Using Named Actions
 
@@ -202,6 +203,44 @@ set((state) => { state.count += 1; }, false, "increment")
 ```
 
 This makes it easy to track what actions triggered state changes in the DevTools.
+
+### Custom Serialization
+
+The store demonstrates custom serialization for handling Date objects in the DevTools:
+
+```typescript
+devtools(
+  // ... your store
+  {
+    name: "App Store",
+    serialize: {
+      replacer: (key, value) => {
+        // Convert Date objects to ISO strings for DevTools
+        if (value instanceof Date) {
+          return { __type: 'Date', value: value.toISOString() };
+        }
+        return value;
+      },
+      reviver: (key, value) => {
+        // Restore Date objects from DevTools state
+        if (value && value.__type === 'Date') {
+          return new Date(value.value);
+        }
+        return value;
+      },
+    },
+  }
+)
+```
+
+This ensures that the `createdAt` Date field in todos is properly displayed and can be time-traveled through in DevTools.
+
+**Use cases for custom serialization:**
+- Date objects (as shown in this example)
+- Map and Set collections
+- Custom classes (e.g., dayjs, moment)
+- Integration with serialization libraries like [superjson](https://github.com/blitz-js/superjson)
+- Immer draft states
 
 ### Opening DevTools
 

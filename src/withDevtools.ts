@@ -86,6 +86,24 @@ export interface ExpoDevtoolsOptions {
 	enabled?: boolean;
 	anonymousActionType?: string;
 	store?: string;
+	serialize?:
+		| boolean
+		| {
+				replacer?: (key: string, value: unknown) => unknown;
+				reviver?: (key: string, value: unknown) => unknown;
+				options?:
+					| boolean
+					| {
+							date?: boolean;
+							regex?: boolean;
+							undefined?: boolean;
+							error?: boolean;
+							symbol?: boolean;
+							map?: boolean;
+							set?: boolean;
+							function?: boolean | ((fn: (...args: unknown[]) => unknown) => string);
+					  };
+		  };
 }
 
 type ExpoDevtools = <
@@ -161,7 +179,7 @@ export const __resetDevToolsClient = () => {
 const expoDevtoolsImpl: ExpoDevtoolsImpl =
 	(fn, devtoolsOptions = {}) =>
 	(set, get, api) => {
-		const { enabled, anonymousActionType, store, ...options } =
+		const { enabled, anonymousActionType, store, serialize, ...options } =
 			devtoolsOptions as ExpoDevtoolsOptions;
 
 		// Check if devtools should be enabled (default to true)
@@ -175,10 +193,36 @@ const expoDevtoolsImpl: ExpoDevtoolsImpl =
 		let client: DevToolsClient | null = null;
 		let isInitializing = true;
 
-		// Helper function to safely parse JSON strings
+		// Extract serialization options
+		const replacer =
+			typeof serialize === "object" ? serialize.replacer : undefined;
+		const reviver = typeof serialize === "object" ? serialize.reviver : undefined;
+
+		// Helper function to serialize state
+		const serializeState = (state: unknown): unknown => {
+			if (!serialize) {
+				return state;
+			}
+
+			// If serialize is true or an object, we need to serialize
+			// For now, we'll use JSON.stringify with replacer if provided
+			// In a full implementation, you might want to use a library like jsan
+			if (replacer) {
+				try {
+					return JSON.parse(JSON.stringify(state, replacer as any));
+				} catch (e) {
+					console.error("[zustand devtools] Serialization error:", e);
+					return state;
+				}
+			}
+
+			return state;
+		};
+
+		// Helper function to safely parse JSON strings with reviver support
 		const safeJsonParse = (jsonString: string, errorContext: string) => {
 			try {
-				return JSON.parse(jsonString);
+				return JSON.parse(jsonString, reviver as any);
 			} catch (e) {
 				console.error(`[zustand devtools] Could not parse ${errorContext}`, e);
 				return null;
@@ -283,26 +327,26 @@ const expoDevtoolsImpl: ExpoDevtoolsImpl =
 		});
 	};
 
-		// Send init message to webui
-		const sendInit = (state: unknown) => {
-			client?.sendMessage("init", {
-				name: options.name,
-				state,
-			});
-		};
+	// Send init message to webui
+	const sendInit = (state: unknown) => {
+		client?.sendMessage("init", {
+			name: options.name,
+			state: serializeState(state),
+		});
+	};
 
-		// Send state update to webui
-		const sendStateUpdate = (action: Action, state: unknown) => {
-			if (!isRecording) return;
+	// Send state update to webui
+	const sendStateUpdate = (action: Action, state: unknown) => {
+		if (!isRecording) return;
 
-			const actionObj = typeof action === "string" ? { type: action } : action;
+		const actionObj = typeof action === "string" ? { type: action } : action;
 
-			client?.sendMessage("state", {
-				name: options.name,
-				type: actionObj.type,
-				state,
-			});
-		};
+		client?.sendMessage("state", {
+			name: options.name,
+			type: actionObj.type,
+			state: serializeState(state),
+		});
+	};
 
 		// Set state from devtools without triggering recording
 		const setStateFromDevtools = (state: unknown) => {

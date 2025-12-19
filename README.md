@@ -74,8 +74,67 @@ interface DevtoolsOptions {
   enabled?: boolean;            // Enable/disable devtools (default: true)
   anonymousActionType?: string; // Default action name (default: 'anonymous')
   store?: string;              // Store identifier
+  serialize?: boolean | {       // Serialization options for complex objects
+    replacer?: (key: string, value: unknown) => unknown;  // Custom serializer
+    reviver?: (key: string, value: unknown) => unknown;   // Custom deserializer
+    options?: boolean | {       // Additional serialization options
+      date?: boolean;
+      regex?: boolean;
+      undefined?: boolean;
+      error?: boolean;
+      symbol?: boolean;
+      map?: boolean;
+      set?: boolean;
+      function?: boolean | ((fn: Function) => string);
+    };
+  };
 }
 ```
+
+### Serialization Options
+
+When your store contains complex objects like `Date`, `Map`, `Set`, or custom classes, you can use the `serialize` option to properly handle them in DevTools:
+
+```typescript
+const useStore = create<State>()(
+  devtools(
+    (set) => ({
+      todos: [],
+      addTodo: (text) => set((state) => ({
+        todos: [...state.todos, {
+          id: Date.now().toString(),
+          text,
+          createdAt: new Date(), // Date object
+        }]
+      }), false, 'addTodo'),
+    }),
+    {
+      name: 'todo-store',
+      serialize: {
+        // Custom function to handle Date objects during serialization
+        replacer: (key, value) => {
+          if (value instanceof Date) {
+            return { __type: 'Date', value: value.toISOString() };
+          }
+          return value;
+        },
+        // Custom function to restore Date objects during deserialization
+        reviver: (key, value) => {
+          if (value && value.__type === 'Date') {
+            return new Date(value.value);
+          }
+          return value;
+        },
+      },
+    }
+  )
+);
+```
+
+This is particularly useful when using libraries like:
+- [superjson](https://github.com/blitz-js/superjson) for automatic serialization
+- Custom serialization for Map, Set, dayjs, etc.
+- Immer or other state management patterns with complex objects
 
 ## Usage with Actions
 
