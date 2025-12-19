@@ -152,6 +152,27 @@ function createAppStore() {
 			),
 			{
 				name: "App Store", // Name for the devtools instance
+				// Custom serialization options for handling Date objects in DevTools
+				// This is useful when your store contains non-serializable objects like
+				// Date, Map, Set, or custom classes
+				serialize: {
+					// replacer: Custom function to handle Date objects during serialization
+					replacer: (key: string, value: unknown) => {
+						// Convert Date objects to ISO strings for DevTools display
+						if (value instanceof Date) {
+							return { __type: 'Date', value: value.toISOString() };
+						}
+						return value;
+					},
+					// reviver: Custom function to restore Date objects during deserialization
+					reviver: (key: string, value: any) => {
+						// Restore Date objects from DevTools state
+						if (value && value.__type === 'Date') {
+							return new Date(value.value);
+						}
+						return value;
+					},
+				},
 			},
 		),
 	);

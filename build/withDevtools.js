@@ -37,7 +37,7 @@ export const __resetDevToolsClient = () => {
     clientInitialized = false;
 };
 const expoDevtoolsImpl = (fn, devtoolsOptions = {}) => (set, get, api) => {
-    const { enabled, anonymousActionType, store, ...options } = devtoolsOptions;
+    const { enabled, anonymousActionType, store, serialize, ...options } = devtoolsOptions;
     // Check if devtools should be enabled (default to true)
     const isEnabled = enabled ?? true;
     if (!isEnabled) {
@@ -47,10 +47,32 @@ const expoDevtoolsImpl = (fn, devtoolsOptions = {}) => (set, get, api) => {
     let isRecording = true;
     let client = null;
     let isInitializing = true;
-    // Helper function to safely parse JSON strings
+    // Extract serialization options
+    const replacer = typeof serialize === "object" ? serialize.replacer : undefined;
+    const reviver = typeof serialize === "object" ? serialize.reviver : undefined;
+    // Helper function to serialize state
+    const serializeState = (state) => {
+        if (!serialize) {
+            return state;
+        }
+        // If serialize is true or an object, we need to serialize
+        // For now, we'll use JSON.stringify with replacer if provided
+        // In a full implementation, you might want to use a library like jsan
+        if (replacer) {
+            try {
+                return JSON.parse(JSON.stringify(state, replacer));
+            }
+            catch (e) {
+                console.error("[zustand devtools] Serialization error:", e);
+                return state;
+            }
+        }
+        return state;
+    };
+    // Helper function to safely parse JSON strings with reviver support
     const safeJsonParse = (jsonString, errorContext) => {
         try {
-            return JSON.parse(jsonString);
+            return JSON.parse(jsonString, reviver);
         }
         catch (e) {
             console.error(`[zustand devtools] Could not parse ${errorContext}`, e);
@@ -140,7 +162,7 @@ const expoDevtoolsImpl = (fn, devtoolsOptions = {}) => (set, get, api) => {
     const sendInit = (state) => {
         client?.sendMessage("init", {
             name: options.name,
-            state,
+            state: serializeState(state),
         });
     };
     // Send state update to webui
@@ -151,7 +173,7 @@ const expoDevtoolsImpl = (fn, devtoolsOptions = {}) => (set, get, api) => {
         client?.sendMessage("state", {
             name: options.name,
             type: actionObj.type,
-            state,
+            state: serializeState(state),
         });
     };
     // Set state from devtools without triggering recording

@@ -36,6 +36,20 @@ export interface ExpoDevtoolsOptions {
     enabled?: boolean;
     anonymousActionType?: string;
     store?: string;
+    serialize?: boolean | {
+        replacer?: (key: string, value: unknown) => unknown;
+        reviver?: (key: string, value: unknown) => unknown;
+        options?: boolean | {
+            date?: boolean;
+            regex?: boolean;
+            undefined?: boolean;
+            error?: boolean;
+            symbol?: boolean;
+            map?: boolean;
+            set?: boolean;
+            function?: boolean | ((fn: (...args: unknown[]) => unknown) => string);
+        };
+    };
 }
 type ExpoDevtools = <T, Mps extends [StoreMutatorIdentifier, unknown][] = [], Mcs extends [StoreMutatorIdentifier, unknown][] = [], U = T>(initializer: StateCreator<T, [
     ...Mps,

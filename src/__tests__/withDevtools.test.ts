@@ -569,6 +569,145 @@ describe('withDevtools.ts - Expo DevTools middleware', () => {
 		});
 	});
 
+	describe('Serialization options', () => {
+		it('should serialize state with custom replacer', async () => {
+			const replacer = jest.fn((key: string, value: unknown) => {
+				if (key === 'secret') {
+					return '[REDACTED]';
+				}
+				return value;
+			});
+
+			const stateWithSecret = { count: 0, secret: 'password123' };
+			const storeInitializer: StateCreator<any, [], []> = () => stateWithSecret;
+			const middleware = devtools(storeInitializer, {
+				name: 'test-store',
+				serialize: { replacer },
+			});
+
+			mockGet.mockReturnValue(stateWithSecret);
+			middleware(mockSet, mockGet, mockApi);
+
+			await new Promise(resolve => setTimeout(resolve, 100));
+
+			// The replacer should have been called during serialization
+			expect(replacer).toHaveBeenCalled();
+		});
+
+		it('should deserialize state with custom reviver', async () => {
+			const reviver = jest.fn((key: string, value: unknown) => {
+				if (key === 'date' && typeof value === 'string') {
+					return new Date(value);
+				}
+				return value;
+			});
+
+			const storeInitializer: StateCreator<any, [], []> = () => initialState;
+			const middleware = devtools(storeInitializer, {
+				name: 'test-store',
+				serialize: { reviver },
+			});
+
+			middleware(mockSet, mockGet, mockApi);
+
+			await new Promise(resolve => setTimeout(resolve, 100));
+
+			const dispatchHandler = mockClient.addMessageListener.mock.calls[0][1];
+
+			// Simulate state with serialized date
+			const stateWithDate = { count: 1, date: '2025-01-01T00:00:00.000Z' };
+			dispatchHandler({
+				type: 'DISPATCH',
+				action: { type: 'JUMP_TO_STATE' },
+				state: JSON.stringify(stateWithDate),
+				instanceId: 'test-store',
+			});
+
+			// The reviver should have been called during deserialization
+			expect(reviver).toHaveBeenCalled();
+		});
+
+		it('should handle serialization when serialize is true', async () => {
+			const storeInitializer: StateCreator<any, [], []> = () => initialState;
+			const middleware = devtools(storeInitializer, {
+				name: 'test-store',
+				serialize: true,
+			});
+
+			middleware(mockSet, mockGet, mockApi);
+
+			await new Promise(resolve => setTimeout(resolve, 100));
+
+			// Should still send init message successfully
+			expect(mockClient.sendMessage).toHaveBeenCalledWith('init', {
+				name: 'test-store',
+				state: initialState,
+			});
+		});
+
+		it('should not serialize when serialize option is not provided', async () => {
+			const storeInitializer: StateCreator<any, [], []> = () => initialState;
+			const middleware = devtools(storeInitializer, { name: 'test-store' });
+
+			middleware(mockSet, mockGet, mockApi);
+
+			await new Promise(resolve => setTimeout(resolve, 100));
+
+			// State should be sent as-is
+			expect(mockClient.sendMessage).toHaveBeenCalledWith('init', {
+				name: 'test-store',
+				state: initialState,
+			});
+		});
+
+		it('should apply replacer to both init and state update messages', async () => {
+			const replacer = jest.fn((key: string, value: unknown) => value);
+			const storeInitializer: StateCreator<any, [], []> = () => initialState;
+			const middleware = devtools(storeInitializer, {
+				name: 'test-store',
+				serialize: { replacer },
+			});
+
+			const originalSetState = jest.fn();
+			mockApi.setState = originalSetState;
+
+			middleware(mockSet, mockGet, mockApi);
+
+			await new Promise(resolve => setTimeout(resolve, 100));
+
+			// Clear the init message calls
+			replacer.mockClear();
+
+			// Trigger a state update
+			const newState = { count: 5, name: 'updated' };
+			mockGet.mockReturnValue(newState);
+			(mockApi.setState as any)(newState, false, 'update');
+
+			// Replacer should be called for state update too
+			expect(replacer).toHaveBeenCalled();
+		});
+
+		it('should handle serialization errors gracefully', async () => {
+			const replacer = jest.fn(() => {
+				throw new Error('Serialization failed');
+			});
+
+			const storeInitializer: StateCreator<any, [], []> = () => initialState;
+			const middleware = devtools(storeInitializer, {
+				name: 'test-store',
+				serialize: { replacer },
+			});
+
+			// Should not throw
+			expect(() => middleware(mockSet, mockGet, mockApi)).not.toThrow();
+
+			await new Promise(resolve => setTimeout(resolve, 100));
+
+			// Should still send a message (with original state as fallback)
+			expect(mockClient.sendMessage).toHaveBeenCalled();
+		});
+	});
+
 	describe('Multiple store instances', () => {
 		it('should handle @@REHYDRATE per-store correctly', async () => {
 			// Create two separate store instances with different rehydration behavior
