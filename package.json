@@ -1,6 +1,6 @@
 {
 	"name": "@csark0812/zustand-expo-devtools",
-	"version": "2.1.7",
+	"version": "2.1.8",
 	"description": "Zustand state inspection and time-travel debugging for Expo apps",
 	"main": "build/index.js",
 	"types": "build/index.d.ts",
