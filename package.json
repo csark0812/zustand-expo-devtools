@@ -1,7 +1,7 @@
 {
 	"name": "@csark0812/zustand-expo-devtools",
 	"version": "2.1.7",
-	"description": "A new DevTools plugin created by create-dev-plugin",
+	"description": "Zustand state inspection and time-travel debugging for Expo apps",
 	"main": "build/index.js",
 	"types": "build/index.d.ts",
 	"sideEffects": false,
@@ -29,7 +29,12 @@
 	},
 	"keywords": [
 		"expo",
-		"devtools"
+		"react-native",
+		"zustand",
+		"devtools",
+		"state-management",
+		"redux-devtools",
+		"time-travel-debugging"
 	],
 	"files": [
 		"build",

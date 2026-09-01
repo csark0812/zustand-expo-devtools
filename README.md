@@ -190,6 +190,12 @@ The devtools middleware is automatically disabled in production builds, so you d
 - Zustand 5.0.5+
 - React Native / Expo development environment
 
+## Community and adoption
+
+See [Community and adoption](./ADOPTION.md) for public implementation reports, maintenance outcomes, downstream integrations, and dated npm activity.
+
+Built something with the package? Use the [project showcase form](https://github.com/csark0812/zustand-expo-devtools/issues/new?template=showcase.yml) to share a public implementation without implying endorsement or production use.
+
 ## Development
 
 This repository contains:
@@ -250,6 +256,7 @@ MIT © [Christopher Sarkissian](https://github.com/csark0812)
 ## Related
 
 - [Zustand](https://github.com/pmndrs/zustand) - 🐻 Bear necessities for state management in React
+- [Zustand Getters](https://github.com/csark0812/zustand-getters) - Reactive JavaScript getters for Zustand
 - [Expo DevTools](https://docs.expo.dev/debugging/tools/) - Expo's debugging and profiling tools
 - [Redux DevTools](https://github.com/reduxjs/redux-devtools) - DevTools core integration
 
