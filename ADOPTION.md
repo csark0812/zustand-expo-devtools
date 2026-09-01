@@ -11,7 +11,7 @@ Verified on 2026-08-31.
 | npm download events, latest 30-day window | 44,386 (2026-07-31 through 2026-08-29) | [npm downloads API](https://api.npmjs.org/downloads/point/last-month/%40csark0812%2Fzustand-expo-devtools) | Registry download activity, not unique users or installations |
 | npm download events, trailing year | 317,963 (2025-08-30 through 2026-08-29) | [npm downloads API](https://api.npmjs.org/downloads/point/last-year/%40csark0812%2Fzustand-expo-devtools) | Registry download activity, not retention or production use |
 | GitHub stars | 95 | [Repository](https://github.com/csark0812/zustand-expo-devtools) | Public interest |
-| GitHub releases | 12 | [Releases](https://github.com/csark0812/zustand-expo-devtools/releases) | Published maintenance history |
+| GitHub releases | 13 | [Releases](https://github.com/csark0812/zustand-expo-devtools/releases) | Published maintenance history |
 
 ## Public implementation reports
 
