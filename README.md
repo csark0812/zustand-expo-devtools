@@ -1,5 +1,10 @@
 # Zustand Expo DevTools
 
+[![npm version](https://img.shields.io/npm/v/%40csark0812%2Fzustand-expo-devtools)](https://www.npmjs.com/package/@csark0812/zustand-expo-devtools)
+[![npm downloads](https://img.shields.io/npm/dm/%40csark0812%2Fzustand-expo-devtools)](https://www.npmjs.com/package/@csark0812/zustand-expo-devtools)
+[![license](https://img.shields.io/npm/l/%40csark0812%2Fzustand-expo-devtools)](https://www.npmjs.com/package/@csark0812/zustand-expo-devtools)
+[![GitHub stars](https://img.shields.io/github/stars/csark0812/zustand-expo-devtools)](https://github.com/csark0812/zustand-expo-devtools/stargazers)
+
 A DevTools plugin that brings Zustand state debugging capabilities to Expo DevTools, allowing you to inspect and debug your Zustand stores directly in the Expo development environment. This plugin works exactly like the built-in Zustand devtools middleware, with the same API and functionality.
 
 ## Features
